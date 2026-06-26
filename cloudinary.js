@@ -35,21 +35,46 @@ async function uploadImageToCloudinary(file) {
   formData.append("file", file);
   formData.append("upload_preset", UPLOAD_PRESET);
 
+  /* ── DEBUG: log exactly what is about to be sent ───────────── */
+  console.log("[Cloudinary] CLOUD_NAME    =", JSON.stringify(CLOUD_NAME));
+  console.log("[Cloudinary] UPLOAD_PRESET =", JSON.stringify(UPLOAD_PRESET));
+  console.log("[Cloudinary] Upload URL    =", CLOUDINARY_URL);
+  console.log("[Cloudinary] FormData entries:");
+  for (const [key, value] of formData.entries()) {
+    if (value instanceof File) {
+      console.log(`   ${key} = File(name="${value.name}", type="${value.type}", size=${value.size}b)`);
+    } else {
+      console.log(`   ${key} = ${JSON.stringify(value)}`);
+    }
+  }
+  /* ──────────────────────────────────────────────────────────── */
+
   const response = await fetch(CLOUDINARY_URL, {
     method: "POST",
     body: formData
   });
 
   if (!response.ok) {
-    let detail = "";
+    let rawText = "";
+    let errJson = null;
     try {
-      const err = await response.json();
-      detail = err?.error?.message ? ` — ${err.error.message}` : "";
-    } catch (_) { /* ignore JSON parse errors */ }
+      rawText = await response.text();
+      errJson = JSON.parse(rawText);
+    } catch (_) { /* response wasn't valid JSON; rawText still holds the body */ }
+
+    /* ── DEBUG: print the full, unfiltered error response ─────── */
+    console.error("[Cloudinary] Upload FAILED");
+    console.error("[Cloudinary] HTTP status:", response.status, response.statusText);
+    console.error("[Cloudinary] Raw response body:", rawText);
+    if (errJson) console.error("[Cloudinary] Parsed error object:", errJson);
+    /* ──────────────────────────────────────────────────────────── */
+
+    const detail = errJson?.error?.message ? ` — ${errJson.error.message}` : (rawText ? ` — ${rawText}` : "");
     throw new Error(`Cloudinary upload failed (${response.status})${detail}`);
   }
 
   const data = await response.json();
+  console.log("[Cloudinary] Upload succeeded. Response:", data);
 
   if (!data.secure_url) {
     throw new Error("Cloudinary response did not include a secure_url.");
