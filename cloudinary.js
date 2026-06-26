@@ -11,7 +11,7 @@
 
 /* ── STEP 1: Paste your Cloudinary credentials here ──────── */
 const CLOUD_NAME    = "dp8ipvgmc";      // e.g. "dxyz12abc"
-const UPLOAD_PRESET = "UrSwMghhwXODb83QZQtTXfgbzSI";   // e.g. "vestra_unsigned"
+const UPLOAD_PRESET = "vestra_upload";   // e.g. "vestra_unsigned"
 /* ─────────────────────────────────────────────────────────── */
 
 const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
